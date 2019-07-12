@@ -53,7 +53,7 @@ namespace AreaAnalyzer
 
             for(int i = 0; i < num_formations; i++)
             {
-                mystring += String.Format("Formation {0}:  {1}\r\n",i,formations[i].ToString());
+                mystring += String.Format("Formation {0}:  {1}\r\n\r\n",i+1,formations[i].ToString());
             }
 
             return mystring;

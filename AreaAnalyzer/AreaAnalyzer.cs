@@ -14,50 +14,143 @@ namespace AreaAnalyzer
     public partial class AreaAnalyzer : Form
     {
         public int file_offset = 0;
-        EncounterSet[] encsets;
+        public string directory = "";
         public int num_sets;
 
         public AreaAnalyzer()
         {
             InitializeComponent();
-            LoadFile();
+            directory = "F:\\RE\\Sui2\\Sui2 Files\\110_ARK\\";
+            string region = "K";
+            string filename = "";
+            string report = "";
+            //string filename = "VE04";
+            for(int i = 1; i < 10; i++)
+            {
+                filename = "V" + region + "0" + i;
+                Console.WriteLine(filename);
+                if(File.Exists(directory+filename+".bin"))
+                    report += LoadFile(filename)+"\r\n\r\n";
+            }
+
+            for (int i = 10; i < 40; i++)
+            {
+                filename = "V" + region + i;
+                //Console.WriteLine(filename);
+                if (File.Exists(directory + filename + ".bin"))
+                    report += LoadFile(filename) + "\r\n\r\n";
+            }
+
+            filename = "W" + region;
+            //Console.WriteLine(filename);
+            if (File.Exists(directory + filename + ".bin"))
+                report += LoadFile(filename) + "\r\n\r\n";
+
+            using (System.IO.StreamWriter file =
+           new System.IO.StreamWriter(@"F:\\RE\\Sui2\\Reports\\Area_" + region + ".txt"))
+            {
+                file.WriteLine(report);
+            }
+
+            updateBox.AppendText(report);
         }
 
-        private void LoadFile()
+        private string LoadFile(string filename)
         {
-            string filename = "F:\\RE\\Sui2\\Sui2 Files\\030_ARH\\VC13.bin";
-            byte[] src = File.ReadAllBytes(filename);
+            EncounterSet[] encsets;
+            //string filename = "F:\\RE\\Sui2\\Sui2 Files\\030_ARC\\VC13.bin";
+            byte[] src = File.ReadAllBytes(directory + filename + ".bin");
+
+            file_offset = 0;
 
             int mybase = Pointer2Index(src, 0);
+            int encbase;
+            //Console.WriteLine("{0:X}",mybase);
 
             if (mybase < 0x15DC50)
                 file_offset = 0x10DC50;
             else
                 file_offset = 0x15DC50;
 
+            //Console.WriteLine("{0:X}", file_offset);
+
             mybase = Pointer2Index(src, 0);
-            int encbase = Pointer2Index(src, mybase+28);
+           // Console.WriteLine("{0:X}", mybase);
+           if(mybase<src.Length)
+                encbase = Pointer2Index(src, mybase+28);
+           else
+                return string.Format("Error parsing region {0}\n", filename);
+            //  Console.WriteLine("{0:X}", encbase);
 
-            WriteDWord(src, 0);
-            WriteDWord(src, mybase);
-            WriteDWord(src, encbase);
+            if (encbase > 0 && encbase <src.Length)
+            {
+                //WriteDWord(src, 0);
+                //WriteDWord(src, mybase);
+                //WriteDWord(src, encbase);
 
-            ParseSets(src, encbase);
+                encsets = ParseSets(src, encbase);
 
-            for(int i=0;i<num_sets;i++)
-                updateBox.AppendText(string.Format("\r\n===Encounter Set {0}===\r\n{1}",i,encsets[i].ToString()));
+                if(encsets!=null)
+                    return GenerateReport(src,encsets, filename);
+                else
+                    return string.Format("Error parsing region {0}\n", filename);
+            }
+            else
+            {
+                return string.Format("No encounters for region {0}\n",filename);
+            }
         }
 
-        private void ParseSets(byte[] src, int encbase)
+        private string GenerateReport(byte[] src,EncounterSet[] encsets, string filename)
         {
-            num_sets = Pointer2DWord(src, encbase);
-            int myset;
-            encsets = new EncounterSet[num_sets];
-            for(int i = 0; i < num_sets; i++)
+            string mystring = "";
+           // using (System.IO.StreamWriter file =
+           //new System.IO.StreamWriter(@"F:\\RE\\Sui2\\Reports\\" + filename + ".txt"))
+           // {
+                //file.WriteLine("=+=Encounter Sets for {0}=+=", filename);
+            mystring+=string.Format("+++Encounter Sets for {0}+++", filename);
+            for (int i = 0; i < encsets.Length; i++)
             {
-                myset = Pointer2Index(src, encbase + i * 4+4);
-                encsets[i] = new EncounterSet(src, myset, file_offset);
+                if (i < 1)
+                {
+                    mystring += string.Format("\r\n==Encounter Set {0}==\r\n{1}", i+1, encsets[i].ToString());
+                }
+                else
+                {
+                    if (Pointer2DWord(src,encsets[0].base_addr+4) == Pointer2DWord(src,encsets[i].base_addr+4))
+                        mystring += string.Format("\r\n===Encounter Set {0} is duplicate===\r\n", i+1);
+                    else
+                        mystring += string.Format("\r\n==Encounter Set {0}==\r\n{1}", i+1, encsets[i].ToString());
+                }
             }
+
+            return mystring;
+            //}
+        }
+
+        private EncounterSet[] ParseSets(byte[] src, int encbase)
+        {
+            EncounterSet[] encsets;
+            num_sets = Pointer2DWord(src, encbase);
+            if (num_sets < 10 && num_sets > 0)
+            {
+                int myset;
+                encsets = new EncounterSet[num_sets];
+                for (int i = 0; i < num_sets; i++)
+                {
+                    myset = Pointer2Index(src, encbase + i * 4 + 4);
+                    encsets[i] = new EncounterSet(src, myset, file_offset);
+                }
+
+                //for (int i = 0; i < num_sets; i++)
+                //    updateBox.AppendText(string.Format("\r\n===Encounter Set {0}===\r\n{1}", i, encsets[i].ToString()));
+
+
+                return encsets;
+            }
+            else
+                return null;
+            
         }
 
         private void WriteDWord(byte[] fileBytes, int v)

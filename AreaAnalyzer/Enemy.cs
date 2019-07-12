@@ -16,7 +16,7 @@ namespace AreaAnalyzer
         {
             index = 0;
             set_id = 0;
-            name = "";
+            name = "---";
         }
 
         public Enemy(byte[] src, int val, int myid)
@@ -172,6 +172,8 @@ namespace AreaAnalyzer
                     return '8';
                 case 0xA1:
                     return '9';
+                case 0x66:
+                    return '.';
                 default:
                     return '-';
 

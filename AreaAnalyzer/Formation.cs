@@ -23,7 +23,10 @@ namespace AreaAnalyzer
 
             for(int i = 0; i < 6; i++)
             {
-                entity = src[index + 10 + i];
+                if (index < src.Length && index > 0)
+                    entity = src[index + 10 + i];
+                else
+                    entity = 0;
 
                 if (entity != 0)
                 {
@@ -38,8 +41,23 @@ namespace AreaAnalyzer
 
         public override string ToString()
         {
-            int charlen = 4;
-            return String.Format("{0}{1}{2}{3}{4}{5}", new string(enemies[0].ToString().Take(charlen).ToArray()), new string(enemies[1].ToString().Take(charlen).ToArray()), new string(enemies[2].ToString().Take(charlen).ToArray()), new string(enemies[3].ToString().Take(charlen).ToArray()), new string(enemies[4].ToString().Take(charlen).ToArray()), new string(enemies[5].ToString().Take(charlen).ToArray()));
+            //int charlen = 4;
+            //return String.Format("{0}{1}{2}{3}{4}{5}", new string(enemies[0].ToString().Take(charlen).ToArray()), new string(enemies[1].ToString().Take(charlen).ToArray()), new string(enemies[2].ToString().Take(charlen).ToArray()), new string(enemies[3].ToString().Take(charlen).ToArray()), new string(enemies[4].ToString().Take(charlen).ToArray()), new string(enemies[5].ToString().Take(charlen).ToArray()));
+            string mystring = "\r\n";
+
+            for(int i = 0; i < 6; i++)
+            {
+                mystring += enemies[i].ToString() + " ";
+            }
+
+            //mystring += "\r\n";
+
+            //for (int i = 3; i < 6; i++)
+            //{
+            //    mystring += enemies[i].ToString() + " ";
+            //}
+
+            return mystring;
         }
     }
 }
