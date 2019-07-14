@@ -20,39 +20,83 @@ namespace AreaAnalyzer
         public AreaAnalyzer()
         {
             InitializeComponent();
-            directory = "F:\\RE\\Sui2\\Sui2 Files\\110_ARK\\";
-            string region = "K";
+            directory = "F:\\RE\\Sui2\\Sui2 Files\\";//050_ARE\\";
+            char region = 'A';
             string filename = "";
             string report = "";
+            string filecode = "";
             //string filename = "VE04";
-            for(int i = 1; i < 10; i++)
+            for (int j = 0; j < 9; j++)
             {
-                filename = "V" + region + "0" + i;
-                Console.WriteLine(filename);
-                if(File.Exists(directory+filename+".bin"))
-                    report += LoadFile(filename)+"\r\n\r\n";
-            }
+                filecode = string.Format("0{0}0_AR{1}\\", j + 1, region);
+                directory = ("F:\\RE\\Sui2\\Sui2 Files\\" + filecode);
+                report = "";
+                for (int i = 1; i < 10; i++)
+                {
+                    filename = "V" + region + "0" + i;
+                    Console.WriteLine(filename);
+                    if (File.Exists(directory + filename + ".bin"))
+                        report += LoadFile(filename);
+                }
 
-            for (int i = 10; i < 40; i++)
-            {
-                filename = "V" + region + i;
+                for (int i = 10; i < 40; i++)
+                {
+                    filename = "V" + region + i;
+                    //Console.WriteLine(filename);
+                    if (File.Exists(directory + filename + ".bin"))
+                        report += LoadFile(filename);
+                }
+
+                filename = "W" + region;
                 //Console.WriteLine(filename);
                 if (File.Exists(directory + filename + ".bin"))
-                    report += LoadFile(filename) + "\r\n\r\n";
+                    report += LoadFile(filename);
+
+                using (System.IO.StreamWriter file =
+               new System.IO.StreamWriter(@"F:\\RE\\Sui2\\Reports\\Area_" + region + ".txt"))
+                {
+                    file.WriteLine(report);
+                }
+
+                updateBox.AppendText(report);
+                region++;
             }
 
-            filename = "W" + region;
-            //Console.WriteLine(filename);
-            if (File.Exists(directory + filename + ".bin"))
-                report += LoadFile(filename) + "\r\n\r\n";
-
-            using (System.IO.StreamWriter file =
-           new System.IO.StreamWriter(@"F:\\RE\\Sui2\\Reports\\Area_" + region + ".txt"))
+            for (int j = 0; j < 2; j++)
             {
-                file.WriteLine(report);
-            }
+                filecode = string.Format("1{0}0_AR{1}\\", j, region);
+                directory = ("F:\\RE\\Sui2\\Sui2 Files\\" + filecode);
+                report = "";
+                for (int i = 1; i < 10; i++)
+                {
+                    filename = "V" + region + "0" + i;
+                    Console.WriteLine(filename);
+                    if (File.Exists(directory + filename + ".bin"))
+                        report += LoadFile(filename);
+                }
 
-            updateBox.AppendText(report);
+                for (int i = 10; i < 40; i++)
+                {
+                    filename = "V" + region + i;
+                    //Console.WriteLine(filename);
+                    if (File.Exists(directory + filename + ".bin"))
+                        report += LoadFile(filename);
+                }
+
+                filename = "W" + region;
+                //Console.WriteLine(filename);
+                if (File.Exists(directory + filename + ".bin"))
+                    report += LoadFile(filename);
+
+                using (System.IO.StreamWriter file =
+               new System.IO.StreamWriter(@"F:\\RE\\Sui2\\Reports\\Area_" + region + ".txt"))
+                {
+                    file.WriteLine(report);
+                }
+
+                updateBox.AppendText(report);
+                region++;
+            }
         }
 
         private string LoadFile(string filename)
@@ -75,11 +119,11 @@ namespace AreaAnalyzer
             //Console.WriteLine("{0:X}", file_offset);
 
             mybase = Pointer2Index(src, 0);
-           // Console.WriteLine("{0:X}", mybase);
-           if(mybase<src.Length)
-                encbase = Pointer2Index(src, mybase+28);
-           else
-                return string.Format("Error parsing region {0}\n", filename);
+            // Console.WriteLine("{0:X}", mybase);
+            if (mybase < src.Length)
+                encbase = Pointer2Index(src, mybase + 28);
+            else
+                return "";//string.Format("Error parsing region {0}\n", filename);
             //  Console.WriteLine("{0:X}", encbase);
 
             if (encbase > 0 && encbase <src.Length)
@@ -90,14 +134,14 @@ namespace AreaAnalyzer
 
                 encsets = ParseSets(src, encbase);
 
-                if(encsets!=null)
-                    return GenerateReport(src,encsets, filename);
+                if (encsets != null)
+                    return GenerateReport(src, encsets, filename);
                 else
-                    return string.Format("Error parsing region {0}\n", filename);
+                    return "";// string.Format("Error parsing region {0}\n", filename);
             }
             else
             {
-                return string.Format("No encounters for region {0}\n",filename);
+                return "";// string.Format("No encounters for region {0}\n",filename);
             }
         }
 
@@ -108,19 +152,19 @@ namespace AreaAnalyzer
            //new System.IO.StreamWriter(@"F:\\RE\\Sui2\\Reports\\" + filename + ".txt"))
            // {
                 //file.WriteLine("=+=Encounter Sets for {0}=+=", filename);
-            mystring+=string.Format("+++Encounter Sets for {0}+++", filename);
+            mystring+=string.Format("\r\n+++Encounter Sets for {0}+++\r\n", filename);
             for (int i = 0; i < encsets.Length; i++)
             {
                 if (i < 1)
                 {
-                    mystring += string.Format("\r\n==Encounter Set {0}==\r\n{1}", i+1, encsets[i].ToString());
+                    mystring += string.Format("\r\n==Encounter Set {0} - [{1}, {2}]===\r\n\r\n{3}", i+1,encsets[i].maxpartylevel,encsets[i].maxlevel, encsets[i].ToString());
                 }
                 else
                 {
-                    if (Pointer2DWord(src,encsets[0].base_addr+4) == Pointer2DWord(src,encsets[i].base_addr+4))
-                        mystring += string.Format("\r\n===Encounter Set {0} is duplicate===\r\n", i+1);
+                    if (Pointer2DWord(src, encsets[0].base_addr + 4) == Pointer2DWord(src, encsets[i].base_addr + 4))
+                        mystring += "";// string.Format("\r\n===Encounter Set {0} is duplicate===\r\n", i+1);
                     else
-                        mystring += string.Format("\r\n==Encounter Set {0}==\r\n{1}", i+1, encsets[i].ToString());
+                        mystring += string.Format("\r\n==Encounter Set {0} - [{1}, {2}]===\r\n\r\n{3}", i + 1, encsets[i].maxpartylevel, encsets[i].maxlevel, encsets[i].ToString());
                 }
             }
 

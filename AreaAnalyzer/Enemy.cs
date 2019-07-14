@@ -11,12 +11,16 @@ namespace AreaAnalyzer
         public int index;
         public int set_id;
         public string name;
+        public int level;
+        public int potch;
 
         public Enemy()
         {
             index = 0;
             set_id = 0;
             name = "---";
+            level = 0;
+            potch = 0;
         }
 
         public Enemy(byte[] src, int val, int myid)
@@ -24,6 +28,8 @@ namespace AreaAnalyzer
             index = val;
             set_id = myid;
             name = StringDecode(src, index);
+            level = src[val+0x20];
+            //potch = src[val+0x25]+src[val+0x26]*256;
         }
 
         private string StringDecode(byte[] src, int index)

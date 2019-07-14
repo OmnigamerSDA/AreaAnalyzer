@@ -14,9 +14,11 @@ namespace AreaAnalyzer
         public int base_addr = 0;
         public int offset;
         public int num_enemies;
-        public int num_formations;
+        public double num_formations;
         public Enemy[] enemies;
-        public Formation[] formations;
+        public List<Formation> formations;
+        public int maxlevel;
+        public int maxpartylevel;
 
         public EncounterSet(byte[] src, int newbase, int file_offset)
         {
@@ -28,6 +30,8 @@ namespace AreaAnalyzer
             enemies = new Enemy[num_enemies+1];
             int entity;
             enemies[0] = new Enemy();
+            maxpartylevel = 0;
+            maxlevel = 0;
 
             for(int i = 1; i <= num_enemies; i++)
             {
@@ -37,24 +41,51 @@ namespace AreaAnalyzer
 
             entity_base = Pointer2Index(src, base_addr + FORM_OFFSET);
             num_formations = Pointer2DWord(src, entity_base);
-            formations = new Formation[num_formations];
+            //formations = new Formation[num_formations];
+            formations = new List<Formation>();
+            Formation myform;
 
             for (int i = 0; i < num_formations; i++)
             {
                 entity = Pointer2Index(src, entity_base + i * 4+4);
-                formations[i] = new Formation(src, entity, i, enemies);
+                if (!FormationExists(entity))
+                {
+                    myform = new Formation(src, entity, i, enemies);
+                    formations.Add(myform);
+                    maxlevel = Math.Max(maxlevel, myform.maxlevel);
+                    maxpartylevel = Math.Max(maxpartylevel, myform.level);
+                }
             }
 
+        }
+
+        private bool FormationExists(int entity)
+        {
+            bool found = false;
+            formations.ForEach((delegate (Formation f)
+            {
+                if (f.index == entity)
+                {
+                    f.instances++;
+                    found = true;
+                }
+            }));
+
+            if (found)
+                return true;
+
+            return false;
         }
 
         public override string ToString()
         {
             string mystring="";
+            int i = 1 ;
 
-            for(int i = 0; i < num_formations; i++)
+            formations.ForEach((delegate (Formation f)
             {
-                mystring += String.Format("Formation {0}:  {1}\r\n\r\n",i+1,formations[i].ToString());
-            }
+                mystring += String.Format("Formation {0} - {1:0.0%} - [{2}, {3}]  {4}\r\n\r\n", i++,f.instances/num_formations, f.level, f.maxlevel, f.ToString());
+            }));
 
             return mystring;
         }

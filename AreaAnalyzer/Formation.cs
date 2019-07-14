@@ -11,6 +11,10 @@ namespace AreaAnalyzer
         public Enemy[] enemies;
         public int set_id;
         public int index;
+        public int level;
+        public int maxlevel;
+        public double instances;
+        //public int potch;
 
         public Formation(Byte[] src, int newbase, int myid, Enemy[] enemylist)
         {
@@ -20,8 +24,11 @@ namespace AreaAnalyzer
             int entity;
 
             enemies = new Enemy[6];
+            level = 0;
+            //potch = 0;
+            maxlevel = 0;
 
-            for(int i = 0; i < 6; i++)
+            for (int i = 0; i < 6; i++)
             {
                 if (index < src.Length && index > 0)
                     entity = src[index + 10 + i];
@@ -31,12 +38,17 @@ namespace AreaAnalyzer
                 if (entity != 0)
                 {
                     enemies[i] = enemylist[entity];
+                    //potch += enemies[i].potch;
+                    level += enemies[i].level;
+                    maxlevel = Math.Max(maxlevel, enemies[i].level);
                 }
                 else
                 {
                     enemies[i] = new Enemy();
                 }
             }
+
+            instances = 1.00;
         }
 
         public override string ToString()
